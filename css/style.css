@@ -226,6 +226,77 @@ body {
     backdrop-filter: blur(10px);
 }
 
+/* モード説明カード */
+.mode-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.mode-card {
+    background: rgba(255,255,255,0.1);
+    border-radius: 15px;
+    padding: 15px;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255,255,255,0.2);
+}
+
+.camera-mode-card {
+    border-color: var(--color-primary);
+    background: rgba(78, 205, 196, 0.15);
+}
+
+.normal-mode-card {
+    border-color: var(--color-accent);
+    background: rgba(255, 230, 109, 0.1);
+}
+
+.mode-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: white;
+}
+
+.mode-description {
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+    color: rgba(255,255,255,0.9);
+}
+
+.mode-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.control-item {
+    font-size: 0.85rem;
+    padding: 5px 10px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    color: rgba(255,255,255,0.95);
+}
+
+.game-goal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 12px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.goal-icon {
+    font-size: 1.3rem;
+}
+
 .buttons-container {
     display: flex;
     flex-direction: column;
@@ -549,26 +620,62 @@ button {
    ======================================== */
 @media (max-width: 600px) {
     .start-content {
-        padding: 20px 15px;
+        padding: 15px 12px;
     }
     
     .title-container {
-        margin-bottom: 10px;
-        gap: 8px;
+        margin-bottom: 8px;
+        gap: 6px;
     }
     
     .title-container h1 {
-        font-size: 1.6rem;
+        font-size: 1.5rem;
     }
     
     .star-left, .star-right {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
     }
     
     .description {
+        font-size: 0.85rem;
+        line-height: 1.5;
+        margin-bottom: 10px;
+    }
+    
+    .mode-info {
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+    
+    .mode-card {
+        padding: 10px;
+        border-radius: 10px;
+    }
+    
+    .mode-title {
         font-size: 0.9rem;
-        line-height: 1.6;
+        margin-bottom: 5px;
+    }
+    
+    .mode-description {
+        font-size: 0.8rem;
+        margin-bottom: 6px;
+    }
+    
+    .control-item {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+    }
+    
+    .game-goal {
+        font-size: 0.85rem;
+        padding: 8px;
         margin-bottom: 12px;
+        gap: 5px;
+    }
+    
+    .goal-icon {
+        font-size: 1.1rem;
     }
     
     .instructions {
@@ -589,14 +696,14 @@ button {
     }
     
     button {
-        font-size: 0.9rem;
-        padding: 10px 16px;
-        margin-bottom: 8px;
-        border-radius: 30px;
+        font-size: 0.85rem;
+        padding: 10px 14px;
+        margin-bottom: 6px;
+        border-radius: 25px;
     }
     
     .button-icon {
-        font-size: 1.1rem;
+        font-size: 1rem;
     }
     
     .stars-counter {
