@@ -774,6 +774,12 @@ function onDeviceMotion(event) {
 }
 
 let isTouching = false;
+let touchStartX = 0;
+let touchStartY = 0;
+let touchCurrentX = 0;
+let touchCurrentY = 0;
+let cameraRotationY = 0;
+let cameraRotationX = 0;
 let debugLog = [];
 
 function updateDebug(message) {
@@ -787,22 +793,53 @@ function updateDebug(message) {
 function onTouchStart(event) {
     updateDebug(`Touch start - Playing:${gameState.isPlaying} Camera:${gameState.isCameraMode}`);
     
-    if (gameState.isPlaying) {
-        event.preventDefault(); // デフォルト動作を防ぐ
+    if (gameState.isPlaying && !gameState.isCameraMode) {
+        event.preventDefault();
+        
+        const touch = event.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        touchCurrentX = touch.clientX;
+        touchCurrentY = touch.clientY;
+        
         isTouching = true;
         updateDebug('✅ Touch activated!');
     }
 }
 
 function onTouchEnd(event) {
-    event.preventDefault(); // デフォルト動作を防ぐ
-    isTouching = false;
-    updateDebug('Touch ended');
+    if (gameState.isPlaying) {
+        event.preventDefault();
+        isTouching = false;
+        updateDebug('Touch ended');
+    }
 }
 
 function onTouchMove(event) {
-    if (gameState.isPlaying) {
-        event.preventDefault(); // スクロールを防ぐ
+    if (gameState.isPlaying && !gameState.isCameraMode) {
+        event.preventDefault();
+        
+        if (event.touches.length === 1) {
+            const touch = event.touches[0];
+            touchCurrentX = touch.clientX;
+            touchCurrentY = touch.clientY;
+            
+            // タッチ移動量を計算
+            const deltaX = touchCurrentX - touchStartX;
+            const deltaY = touchCurrentY - touchStartY;
+            
+            // カメラ回転（感度調整）
+            const sensitivity = 0.003;
+            cameraRotationY -= deltaX * sensitivity;
+            cameraRotationX -= deltaY * sensitivity;
+            
+            // 上下の回転制限
+            cameraRotationX = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, cameraRotationX));
+            
+            // 開始位置を更新
+            touchStartX = touchCurrentX;
+            touchStartY = touchCurrentY;
+        }
     }
 }
 
@@ -909,11 +946,17 @@ function startGame() {
     camera.position.set(0, 1.6, 8);
     controls.target.set(0, 1, 0);
     
+    // カメラ回転をリセット
+    cameraRotationY = 0;
+    cameraRotationX = 0;
+    camera.rotation.set(0, 0, 0);
+    
     // スマホの場合はOrbitControlsを無効化（タッチ操作と競合するため）
     if ('ontouchstart' in window) {
         controls.enabled = false;
         updateDebug('🎮 Touch device detected');
         updateDebug('OrbitControls: OFF');
+        updateDebug('Swipe to look around!');
     } else {
         updateDebug('🖱️ Desktop device');
         updateDebug('OrbitControls: ON');
@@ -1323,6 +1366,13 @@ function updatePlayerMovement(delta) {
         if (keys.s) camera.position.z += speed;
         if (keys.a) camera.position.x -= speed;
         if (keys.d) camera.position.x += speed;
+        
+        // スマホ：スワイプでカメラ回転
+        if ('ontouchstart' in window && !gameState.isCameraMode) {
+            camera.rotation.order = 'YXZ';
+            camera.rotation.y = cameraRotationY;
+            camera.rotation.x = cameraRotationX;
+        }
         
         // タッチで前進（通常モード）
         if (isTouching && !gameState.isCameraMode) {
