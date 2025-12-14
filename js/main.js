@@ -774,10 +774,12 @@ function onDeviceMotion(event) {
 }
 
 let isTouching = false;
+let isLooking = false; // スワイプ中かどうか
 let touchStartX = 0;
 let touchStartY = 0;
 let touchCurrentX = 0;
 let touchCurrentY = 0;
+let touchMoveDistance = 0;
 let cameraRotationY = 0;
 let cameraRotationX = 0;
 let debugLog = [];
@@ -801,8 +803,10 @@ function onTouchStart(event) {
         touchStartY = touch.clientY;
         touchCurrentX = touch.clientX;
         touchCurrentY = touch.clientY;
+        touchMoveDistance = 0;
         
         isTouching = true;
+        isLooking = false;
         updateDebug('✅ Touch activated!');
     }
 }
@@ -811,6 +815,7 @@ function onTouchEnd(event) {
     if (gameState.isPlaying) {
         event.preventDefault();
         isTouching = false;
+        isLooking = false;
         updateDebug('Touch ended');
     }
 }
@@ -828,13 +833,23 @@ function onTouchMove(event) {
             const deltaX = touchCurrentX - touchStartX;
             const deltaY = touchCurrentY - touchStartY;
             
-            // カメラ回転（感度調整）
-            const sensitivity = 0.003;
-            cameraRotationY -= deltaX * sensitivity;
-            cameraRotationX -= deltaY * sensitivity;
+            // 移動距離の累積
+            touchMoveDistance += Math.abs(deltaX) + Math.abs(deltaY);
             
-            // 上下の回転制限
-            cameraRotationX = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, cameraRotationX));
+            // 一定以上動いたらスワイプ（見回し）モード
+            if (touchMoveDistance > 10) {
+                isLooking = true;
+            }
+            
+            // スワイプ中はカメラ回転
+            if (isLooking) {
+                const sensitivity = 0.003;
+                cameraRotationY -= deltaX * sensitivity;
+                cameraRotationX -= deltaY * sensitivity;
+                
+                // 上下の回転制限（地面や空を見すぎないように）
+                cameraRotationX = Math.max(-Math.PI / 6, Math.min(Math.PI / 6, cameraRotationX));
+            }
             
             // 開始位置を更新
             touchStartX = touchCurrentX;
@@ -1231,9 +1246,9 @@ function animate() {
         // デバッグ情報更新（常時表示）
         if (debugInfo && Math.random() < 0.02) { // 2%の確率で更新（負荷軽減）
             const status = [
-                `Touch: ${isTouching ? '✅ YES' : '❌ NO'}`,
+                `Touch: ${isTouching ? '✅' : '❌'} | Look: ${isLooking ? '👀' : '➡️'}`,
                 `Pos: (${camera.position.x.toFixed(1)}, ${camera.position.z.toFixed(1)})`,
-                `Camera: ${gameState.isCameraMode ? 'AR' : 'Normal'}`
+                `Rot: ${(cameraRotationX * 57.3).toFixed(0)}°`
             ];
             debugInfo.innerHTML = debugLog.concat(status).join('<br>');
         }
@@ -1374,8 +1389,8 @@ function updatePlayerMovement(delta) {
             camera.rotation.x = cameraRotationX;
         }
         
-        // タッチで前進（通常モード）
-        if (isTouching && !gameState.isCameraMode) {
+        // タッチで前進（通常モード）- スワイプ中は前進しない
+        if (isTouching && !isLooking && !gameState.isCameraMode) {
             const direction = new THREE.Vector3();
             camera.getWorldDirection(direction);
             direction.y = 0;
