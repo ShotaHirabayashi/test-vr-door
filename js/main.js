@@ -1026,7 +1026,7 @@ async function enterCameraMode() {
         
         // ゲーム開始
         startGame();
-        showMessage("📷 がめんを タッチして すすもう！");
+        showMessage("📷 がめんを タッチ または スマホをふって すすもう！");
         
     } catch (error) {
         console.error('Camera access error:', error);
@@ -1215,10 +1215,13 @@ function updatePlayerMovement(delta) {
         camera.rotation.order = 'YXZ';
         
         // 加速度センサーで移動（歩行検知）
-        const walkThreshold = 0.05; // 歩行と判定する閾値
-        const walkSpeed = 0.15; // 歩行時の移動速度
+        const walkThreshold = 0.02; // 歩行と判定する閾値（より敏感に）
+        const walkSpeed = 0.3; // 歩行時の移動速度（より速く）
         
-        // 前後の動き（Z軸）
+        // デバッグ用：動きを検知したら表示
+        const totalMotion = Math.abs(deviceMotion.velocity.x) + Math.abs(deviceMotion.velocity.y) + Math.abs(deviceMotion.velocity.z);
+        
+        // 前後の動き（Z軸）- スマホを持って前後に動かす
         if (Math.abs(deviceMotion.velocity.z) > walkThreshold) {
             const direction = new THREE.Vector3(0, 0, -1);
             direction.applyQuaternion(camera.quaternion);
@@ -1238,14 +1241,25 @@ function updatePlayerMovement(delta) {
             camera.position.add(direction.multiplyScalar(deviceMotion.velocity.x * walkSpeed));
         }
         
-        // タッチでも前進（代替操作）
+        // 上下の動き（Y軸）- 歩行時の上下動
+        if (Math.abs(deviceMotion.velocity.y) > walkThreshold) {
+            const direction = new THREE.Vector3(0, 0, -1);
+            direction.applyQuaternion(camera.quaternion);
+            direction.y = 0;
+            direction.normalize();
+            
+            // Y軸の動きを前進に変換（歩行の上下動を検知）
+            camera.position.add(direction.multiplyScalar(Math.abs(deviceMotion.velocity.y) * walkSpeed * 0.5));
+        }
+        
+        // タッチでも前進（代替操作）- より速く
         if (isTouching) {
             const direction = new THREE.Vector3(0, 0, -1);
             direction.applyQuaternion(camera.quaternion);
             direction.y = 0;
             direction.normalize();
             
-            camera.position.add(direction.multiplyScalar(speed));
+            camera.position.add(direction.multiplyScalar(speed * 3)); // 3倍速
         }
         
         // 境界チェック
