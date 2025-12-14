@@ -793,7 +793,7 @@ function updateDebug(message) {
 }
 
 function onTouchStart(event) {
-    updateDebug(`Touch start - Playing:${gameState.isPlaying} Camera:${gameState.isCameraMode}`);
+    updateDebug(`Touch start - Fingers:${event.touches.length}`);
     
     if (gameState.isPlaying && !gameState.isCameraMode) {
         event.preventDefault();
@@ -805,18 +805,29 @@ function onTouchStart(event) {
         touchCurrentY = touch.clientY;
         touchMoveDistance = 0;
         
-        isTouching = true;
-        isLooking = false;
-        updateDebug('✅ Touch activated!');
+        // 2本指 = 見回し、1本指 = 前進
+        if (event.touches.length === 2) {
+            isLooking = true;
+            isTouching = false;
+            updateDebug('👀 Looking mode (2 fingers)');
+        } else {
+            isTouching = true;
+            isLooking = false;
+            updateDebug('➡️ Moving mode (1 finger)');
+        }
     }
 }
 
 function onTouchEnd(event) {
     if (gameState.isPlaying) {
         event.preventDefault();
+        
+        updateDebug(`Touch ended - Looking:${isLooking} Distance:${touchMoveDistance.toFixed(0)}`);
+        
+        // フラグをリセット
         isTouching = false;
         isLooking = false;
-        updateDebug('Touch ended');
+        touchMoveDistance = 0;
     }
 }
 
@@ -824,34 +835,22 @@ function onTouchMove(event) {
     if (gameState.isPlaying && !gameState.isCameraMode) {
         event.preventDefault();
         
-        if (event.touches.length === 1) {
+        // 2本指で見回し
+        if (event.touches.length === 2 || isLooking) {
             const touch = event.touches[0];
             touchCurrentX = touch.clientX;
             touchCurrentY = touch.clientY;
             
-            // タッチ移動量を計算
             const deltaX = touchCurrentX - touchStartX;
             const deltaY = touchCurrentY - touchStartY;
             
-            // 移動距離の累積
-            touchMoveDistance += Math.abs(deltaX) + Math.abs(deltaY);
+            const sensitivity = 0.003;
+            cameraRotationY -= deltaX * sensitivity;
+            cameraRotationX -= deltaY * sensitivity;
             
-            // 一定以上動いたらスワイプ（見回し）モード
-            if (touchMoveDistance > 10) {
-                isLooking = true;
-            }
+            // 上下の回転制限
+            cameraRotationX = Math.max(-Math.PI / 6, Math.min(Math.PI / 6, cameraRotationX));
             
-            // スワイプ中はカメラ回転
-            if (isLooking) {
-                const sensitivity = 0.003;
-                cameraRotationY -= deltaX * sensitivity;
-                cameraRotationX -= deltaY * sensitivity;
-                
-                // 上下の回転制限（地面や空を見すぎないように）
-                cameraRotationX = Math.max(-Math.PI / 6, Math.min(Math.PI / 6, cameraRotationX));
-            }
-            
-            // 開始位置を更新
             touchStartX = touchCurrentX;
             touchStartY = touchCurrentY;
         }
