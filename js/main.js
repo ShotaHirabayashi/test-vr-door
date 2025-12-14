@@ -889,21 +889,32 @@ function enterAR() {
 // カメラモード（iPhone対応）
 // ========================================
 async function enterCameraMode() {
+    showMessage("カメラモード準備中...");
+    
     try {
         // iOS 13+ではジャイロセンサーの許可が必要
         if (typeof DeviceOrientationEvent !== 'undefined' && 
             typeof DeviceOrientationEvent.requestPermission === 'function') {
-            const permission = await DeviceOrientationEvent.requestPermission();
-            if (permission !== 'granted') {
-                showMessage("ジャイロセンサーの許可が必要です");
-                return;
+            try {
+                const permission = await DeviceOrientationEvent.requestPermission();
+                if (permission !== 'granted') {
+                    showMessage("モーションセンサーの許可が必要です");
+                }
+            } catch (e) {
+                console.log('Motion permission error:', e);
+                // 許可が得られなくてもカメラモードは続行
             }
         }
         
         // カメラへのアクセスを要求
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showMessage("このブラウザはカメラに対応していません");
+            return;
+        }
+        
         const stream = await navigator.mediaDevices.getUserMedia({
             video: { 
-                facingMode: 'environment',  // 背面カメラ
+                facingMode: { ideal: 'environment' },  // 背面カメラ
                 width: { ideal: 1280 },
                 height: { ideal: 720 }
             },
@@ -912,6 +923,7 @@ async function enterCameraMode() {
         
         // ビデオ要素にストリームをセット
         cameraVideo.srcObject = stream;
+        await cameraVideo.play();
         cameraVideo.classList.add('active');
         
         // ゲーム状態を更新
@@ -958,7 +970,7 @@ async function enterCameraMode() {
         
     } catch (error) {
         console.error('Camera access error:', error);
-        showMessage("カメラにアクセスできませんでした 😢");
+        showMessage("エラー: " + error.message);
     }
 }
 
