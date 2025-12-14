@@ -270,6 +270,33 @@ button {
     box-shadow: none;
 }
 
+.camera-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.camera-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+}
+
+/* カメラ映像（iPhone対応ARモード） */
+#camera-video {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1;
+    display: none;
+}
+
+#camera-video.active {
+    display: block;
+}
+
 .button-icon {
     font-size: 1.6rem;
 }

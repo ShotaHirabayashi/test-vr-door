@@ -66,6 +66,10 @@
                 <span class="button-icon">📱</span>
                 <span>ARモードで あそぶ</span>
             </button>
+            <button id="camera-button" class="camera-btn">
+                <span class="button-icon">📷</span>
+                <span>カメラモード (iPhone対応)</span>
+            </button>
         </div>
     </div>
 
@@ -94,6 +98,9 @@
     </div>
 
     <div id="container"></div>
+    
+    <!-- カメラ映像（iPhone対応ARモード用） -->
+    <video id="camera-video" playsinline autoplay muted></video>
 
     <script type="module" src="js/main.js"></script>
 </body>

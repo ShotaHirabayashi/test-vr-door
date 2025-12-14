@@ -27,6 +27,7 @@ const gameState = {
     isPlaying: false,
     isVR: false,
     isAR: false,
+    isCameraMode: false,
     canMove: true,
     messages: [
         "がんばって！ おふろは きもちいいよ！",
@@ -65,6 +66,8 @@ const vrButton = document.getElementById('vr-button');
 const restartButton = document.getElementById('restart-button');
 const finalStarsEl = document.getElementById('final-stars');
 const arButton = document.getElementById('ar-button');
+const cameraButton = document.getElementById('camera-button');
+const cameraVideo = document.getElementById('camera-video');
 
 // ========================================
 // 初期化
@@ -698,12 +701,42 @@ function setupEventListeners() {
     // ARボタン
     arButton.addEventListener('click', enterAR);
     
+    // カメラモードボタン（iPhone対応）
+    cameraButton.addEventListener('click', enterCameraMode);
+    
     // リスタートボタン
     restartButton.addEventListener('click', restartGame);
     
     // キーボード（非VR用）
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
+    
+    // デバイスの向き（スマホ用）
+    window.addEventListener('deviceorientation', onDeviceOrientation);
+    
+    // タッチで前進（スマホ用）
+    document.getElementById('container').addEventListener('touchstart', onTouchStart);
+    document.getElementById('container').addEventListener('touchend', onTouchEnd);
+}
+
+function onDeviceOrientation(event) {
+    if (event.alpha !== null) {
+        deviceOrientation.alpha = event.alpha; // Z軸回転（コンパス）
+        deviceOrientation.beta = event.beta;   // X軸回転（前後傾き）
+        deviceOrientation.gamma = event.gamma; // Y軸回転（左右傾き）
+    }
+}
+
+let isTouching = false;
+
+function onTouchStart(event) {
+    if (gameState.isPlaying && (gameState.isCameraMode || !gameState.isVR)) {
+        isTouching = true;
+    }
+}
+
+function onTouchEnd(event) {
+    isTouching = false;
 }
 
 function onWindowResize() {
@@ -713,6 +746,7 @@ function onWindowResize() {
 }
 
 let keys = { w: false, a: false, s: false, d: false, up: false, down: false, left: false, right: false };
+let deviceOrientation = { alpha: 0, beta: 0, gamma: 0 };
 
 function onKeyDown(event) {
     switch (event.key.toLowerCase()) {
@@ -846,10 +880,121 @@ function enterAR() {
     });
 }
 
+// ========================================
+// カメラモード（iPhone対応）
+// ========================================
+async function enterCameraMode() {
+    try {
+        // iOS 13+ではジャイロセンサーの許可が必要
+        if (typeof DeviceOrientationEvent !== 'undefined' && 
+            typeof DeviceOrientationEvent.requestPermission === 'function') {
+            const permission = await DeviceOrientationEvent.requestPermission();
+            if (permission !== 'granted') {
+                showMessage("ジャイロセンサーの許可が必要です");
+                return;
+            }
+        }
+        
+        // カメラへのアクセスを要求
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { 
+                facingMode: 'environment',  // 背面カメラ
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            },
+            audio: false
+        });
+        
+        // ビデオ要素にストリームをセット
+        cameraVideo.srcObject = stream;
+        cameraVideo.classList.add('active');
+        
+        // ゲーム状態を更新
+        gameState.isCameraMode = true;
+        
+        // シーンの背景を透明に
+        scene.background = null;
+        scene.fog = null;
+        
+        // レンダラーを透明に設定
+        renderer.setClearColor(0x000000, 0);
+        
+        // 床と壁を半透明に
+        scene.traverse((object) => {
+            if (object.isMesh) {
+                const type = object.userData.type;
+                if (type === 'star' || type === 'goal') {
+                    // 星とゴールは見やすくする
+                    if (object.material) {
+                        object.material.transparent = true;
+                        object.material.opacity = 1;
+                    }
+                } else if (type === 'obstacle') {
+                    // 障害物（おもちゃ）は半透明
+                    if (object.material) {
+                        object.material.transparent = true;
+                        object.material.opacity = 0.7;
+                    }
+                } else {
+                    // 床や壁は非表示に
+                    if (object.material && !object.material.emissive) {
+                        object.visible = false;
+                    }
+                }
+            }
+        });
+        
+        // OrbitControlsを無効化（ジャイロで制御するため）
+        controls.enabled = false;
+        
+        // ゲーム開始
+        startGame();
+        showMessage("📷 がめんを タッチして すすもう！");
+        
+    } catch (error) {
+        console.error('Camera access error:', error);
+        showMessage("カメラにアクセスできませんでした 😢");
+    }
+}
+
+function stopCameraMode() {
+    if (cameraVideo.srcObject) {
+        const tracks = cameraVideo.srcObject.getTracks();
+        tracks.forEach(track => track.stop());
+        cameraVideo.srcObject = null;
+    }
+    cameraVideo.classList.remove('active');
+    gameState.isCameraMode = false;
+    
+    // OrbitControlsを再有効化
+    controls.enabled = true;
+    
+    // 元に戻す
+    scene.background = new THREE.Color(0x1a1a2e);
+    scene.fog = new THREE.Fog(0x1a1a2e, 5, 30);
+    renderer.setClearColor(0x1a1a2e, 1);
+    
+    scene.traverse((object) => {
+        if (object.isMesh) {
+            object.visible = true;
+            if (object.material) {
+                object.material.transparent = false;
+                object.material.opacity = 1;
+            }
+        }
+    });
+}
+
 function restartGame() {
+    // カメラモードを停止
+    if (gameState.isCameraMode) {
+        stopCameraMode();
+    }
+    
     // ゲーム状態リセット
     gameState.starsCollected = 0;
     gameState.isPlaying = true;
+    gameState.isCameraMode = false;
     
     // 星をリセット
     stars.forEach(star => {
@@ -857,6 +1002,21 @@ function restartGame() {
         star.userData.collected = false;
         if (star.userData.light) {
             star.userData.light.visible = true;
+        }
+    });
+    
+    // すべてのオブジェクトを元に戻す
+    scene.background = new THREE.Color(0x1a1a2e);
+    scene.fog = new THREE.Fog(0x1a1a2e, 5, 30);
+    renderer.setClearColor(0x1a1a2e, 1);
+    
+    scene.traverse((object) => {
+        if (object.isMesh) {
+            object.visible = true;
+            if (object.material) {
+                object.material.transparent = false;
+                object.material.opacity = 1;
+            }
         }
     });
     
@@ -964,8 +1124,34 @@ function updatePlayerMovement(delta) {
             
             playerGroup.position.add(direction.multiplyScalar(speed));
         }
+    } else if (gameState.isCameraMode) {
+        // カメラモード（スマホ）での移動
+        // ジャイロセンサーでカメラ回転
+        const alpha = THREE.MathUtils.degToRad(deviceOrientation.alpha || 0);
+        const beta = THREE.MathUtils.degToRad(deviceOrientation.beta || 0);
+        const gamma = THREE.MathUtils.degToRad(deviceOrientation.gamma || 0);
+        
+        // スマホを縦持ちした時の向きに対応
+        camera.rotation.x = beta - Math.PI / 2;
+        camera.rotation.y = -alpha;
+        camera.rotation.z = -gamma;
+        camera.rotation.order = 'YXZ';
+        
+        // タッチで前進
+        if (isTouching) {
+            const direction = new THREE.Vector3(0, 0, -1);
+            direction.applyQuaternion(camera.quaternion);
+            direction.y = 0;
+            direction.normalize();
+            
+            camera.position.add(direction.multiplyScalar(speed));
+        }
+        
+        // 境界チェック
+        camera.position.x = Math.max(-9, Math.min(9, camera.position.x));
+        camera.position.z = Math.max(-9.5, Math.min(10, camera.position.z));
     } else {
-        // 非VRモードでの移動
+        // 非VRモードでの移動（PC）
         if (keys.w) camera.position.z -= speed;
         if (keys.s) camera.position.z += speed;
         if (keys.a) camera.position.x -= speed;
@@ -1044,6 +1230,11 @@ function collectStar(star) {
 
 function reachGoal() {
     gameState.isPlaying = false;
+    
+    // カメラモードを停止
+    if (gameState.isCameraMode) {
+        stopCameraMode();
+    }
     
     // ゴール画面表示
     gameUI.classList.add('hidden');
