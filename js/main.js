@@ -68,7 +68,6 @@ const finalStarsEl = document.getElementById('final-stars');
 const arButton = document.getElementById('ar-button');
 const cameraButton = document.getElementById('camera-button');
 const cameraVideo = document.getElementById('camera-video');
-const debugInfo = document.getElementById('debug-info');
 
 // ========================================
 // 初期化
@@ -782,19 +781,8 @@ let touchCurrentY = 0;
 let touchMoveDistance = 0;
 let cameraRotationY = 0;
 let cameraRotationX = 0;
-let debugLog = [];
-
-function updateDebug(message) {
-    debugLog.push(`${new Date().toLocaleTimeString()}: ${message}`);
-    if (debugLog.length > 8) debugLog.shift();
-    if (debugInfo) {
-        debugInfo.innerHTML = debugLog.join('<br>');
-    }
-}
 
 function onTouchStart(event) {
-    updateDebug(`Touch start - Fingers:${event.touches.length}`);
-    
     if (gameState.isPlaying && !gameState.isCameraMode) {
         event.preventDefault();
         
@@ -809,11 +797,9 @@ function onTouchStart(event) {
         if (event.touches.length === 2) {
             isLooking = true;
             isTouching = false;
-            updateDebug('👀 Looking mode (2 fingers)');
         } else {
             isTouching = true;
             isLooking = false;
-            updateDebug('➡️ Moving mode (1 finger)');
         }
     }
 }
@@ -821,8 +807,6 @@ function onTouchStart(event) {
 function onTouchEnd(event) {
     if (gameState.isPlaying) {
         event.preventDefault();
-        
-        updateDebug(`Touch ended - Looking:${isLooking} Distance:${touchMoveDistance.toFixed(0)}`);
         
         // フラグをリセット
         isTouching = false;
@@ -968,15 +952,8 @@ function startGame() {
     // スマホの場合はOrbitControlsを無効化（タッチ操作と競合するため）
     if ('ontouchstart' in window) {
         controls.enabled = false;
-        updateDebug('🎮 Touch device detected');
-        updateDebug('OrbitControls: OFF');
-        updateDebug('Swipe to look around!');
-    } else {
-        updateDebug('🖱️ Desktop device');
-        updateDebug('OrbitControls: ON');
     }
     
-    updateDebug('Game started!');
     showMessage("⭐ほしを あつめて おふろへ いこう！");
 }
 
@@ -1242,15 +1219,6 @@ function animate() {
         // 衝突判定
         checkCollisions();
         
-        // デバッグ情報更新（常時表示）
-        if (debugInfo && Math.random() < 0.02) { // 2%の確率で更新（負荷軽減）
-            const status = [
-                `Touch: ${isTouching ? '✅' : '❌'} | Look: ${isLooking ? '👀' : '➡️'}`,
-                `Pos: (${camera.position.x.toFixed(1)}, ${camera.position.z.toFixed(1)})`,
-                `Rot: ${(cameraRotationX * 57.3).toFixed(0)}°`
-            ];
-            debugInfo.innerHTML = debugLog.concat(status).join('<br>');
-        }
     }
     
     controls.update();

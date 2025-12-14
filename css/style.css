@@ -468,22 +468,6 @@ button {
     font-size: 1.2rem;
 }
 
-#debug-info {
-    position: fixed;
-    top: 60px;
-    left: 10px;
-    background: rgba(0, 0, 0, 0.8);
-    color: #0f0;
-    padding: 10px;
-    border-radius: 8px;
-    font-family: monospace;
-    font-size: 0.75rem;
-    max-width: 90%;
-    line-height: 1.4;
-    pointer-events: none;
-    z-index: 200;
-}
-
 #message-box {
     position: fixed;
     bottom: 100px;
