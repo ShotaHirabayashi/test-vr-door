@@ -125,10 +125,12 @@ body {
     height: 100%;
     background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     z-index: 900;
     transition: opacity 0.5s ease, visibility 0.5s ease;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 #start-screen.hidden {
@@ -140,8 +142,10 @@ body {
 .start-content {
     text-align: center;
     color: white;
-    padding: 40px;
+    padding: 40px 20px;
     max-width: 500px;
+    margin: auto;
+    min-height: min-content;
 }
 
 .title-container {
@@ -214,15 +218,15 @@ button {
     justify-content: center;
     gap: 10px;
     width: 100%;
-    padding: 18px 40px;
+    padding: 15px 30px;
     font-family: var(--font-main);
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     font-weight: 700;
     border: none;
     border-radius: 50px;
     cursor: pointer;
     transition: all 0.3s ease;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
 }
 
 #start-button {
@@ -503,21 +507,50 @@ button {
    Responsive Design
    ======================================== */
 @media (max-width: 600px) {
+    .start-content {
+        padding: 30px 15px;
+    }
+    
+    .title-container {
+        margin-bottom: 20px;
+    }
+    
     .title-container h1 {
-        font-size: 2.5rem;
+        font-size: 2rem;
     }
     
     .star-left, .star-right {
-        font-size: 1.8rem;
+        font-size: 1.5rem;
     }
     
     .description {
-        font-size: 1.1rem;
+        font-size: 1rem;
+        line-height: 1.8;
+        margin-bottom: 20px;
+    }
+    
+    .instructions {
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .instruction-item {
+        font-size: 0.95rem;
+        padding: 8px 0;
+    }
+    
+    .instruction-item .icon {
+        font-size: 1.4rem;
     }
     
     button {
-        font-size: 1.2rem;
-        padding: 15px 30px;
+        font-size: 1rem;
+        padding: 12px 20px;
+        margin-bottom: 10px;
+    }
+    
+    .button-icon {
+        font-size: 1.3rem;
     }
     
     .stars-counter {
@@ -526,8 +559,9 @@ button {
     }
     
     #message-box {
-        font-size: 1.2rem;
-        padding: 15px 25px;
+        font-size: 1.1rem;
+        padding: 15px 20px;
+        bottom: 80px;
     }
     
     .goal-content h1 {
@@ -536,6 +570,41 @@ button {
     
     .trophy {
         font-size: 70px;
+    }
+}
+
+@media (max-height: 700px) {
+    .start-content {
+        padding: 20px 15px;
+    }
+    
+    .title-container {
+        margin-bottom: 15px;
+    }
+    
+    .title-container h1 {
+        font-size: 1.8rem;
+    }
+    
+    .description {
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+    }
+    
+    .instructions {
+        padding: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .instruction-item {
+        font-size: 0.85rem;
+        padding: 5px 0;
+    }
+    
+    button {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+        margin-bottom: 8px;
     }
 }
 
