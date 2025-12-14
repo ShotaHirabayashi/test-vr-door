@@ -68,6 +68,7 @@ const finalStarsEl = document.getElementById('final-stars');
 const arButton = document.getElementById('ar-button');
 const cameraButton = document.getElementById('camera-button');
 const cameraVideo = document.getElementById('camera-video');
+const debugInfo = document.getElementById('debug-info');
 
 // ========================================
 // 初期化
@@ -773,21 +774,30 @@ function onDeviceMotion(event) {
 }
 
 let isTouching = false;
+let debugLog = [];
+
+function updateDebug(message) {
+    debugLog.push(`${new Date().toLocaleTimeString()}: ${message}`);
+    if (debugLog.length > 8) debugLog.shift();
+    if (debugInfo) {
+        debugInfo.innerHTML = debugLog.join('<br>');
+    }
+}
 
 function onTouchStart(event) {
-    console.log('Touch start:', gameState.isPlaying, gameState.isCameraMode, gameState.isVR);
+    updateDebug(`Touch start - Playing:${gameState.isPlaying} Camera:${gameState.isCameraMode}`);
     
     if (gameState.isPlaying) {
         event.preventDefault(); // デフォルト動作を防ぐ
         isTouching = true;
-        console.log('Touch activated!');
+        updateDebug('✅ Touch activated!');
     }
 }
 
 function onTouchEnd(event) {
     event.preventDefault(); // デフォルト動作を防ぐ
     isTouching = false;
-    console.log('Touch ended');
+    updateDebug('Touch ended');
 }
 
 function onTouchMove(event) {
@@ -1156,6 +1166,11 @@ function animate() {
         
         // 衝突判定
         checkCollisions();
+        
+        // デバッグ情報更新（1秒ごと）
+        if (Math.floor(Date.now() / 1000) % 2 === 0 && debugInfo) {
+            updateDebug(`Touch:${isTouching} Pos:(${camera.position.x.toFixed(1)},${camera.position.z.toFixed(1)})`);
+        }
     }
     
     controls.update();
