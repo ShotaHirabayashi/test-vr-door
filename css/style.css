@@ -35,6 +35,8 @@ body {
 #container {
     width: 100%;
     height: 100%;
+    position: relative;
+    z-index: 10;
 }
 
 /* ========================================
@@ -302,8 +304,9 @@ button {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    z-index: -1;
+    z-index: 0;
     display: none;
+    pointer-events: none;
 }
 
 #camera-video.active {
