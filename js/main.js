@@ -912,9 +912,14 @@ function startGame() {
     // スマホの場合はOrbitControlsを無効化（タッチ操作と競合するため）
     if ('ontouchstart' in window) {
         controls.enabled = false;
-        updateDebug('OrbitControls disabled (touch device)');
+        updateDebug('🎮 Touch device detected');
+        updateDebug('OrbitControls: OFF');
+    } else {
+        updateDebug('🖱️ Desktop device');
+        updateDebug('OrbitControls: ON');
     }
     
+    updateDebug('Game started!');
     showMessage("⭐ほしを あつめて おふろへ いこう！");
 }
 
@@ -1180,9 +1185,14 @@ function animate() {
         // 衝突判定
         checkCollisions();
         
-        // デバッグ情報更新（1秒ごと）
-        if (Math.floor(Date.now() / 1000) % 2 === 0 && debugInfo) {
-            updateDebug(`Touch:${isTouching} Pos:(${camera.position.x.toFixed(1)},${camera.position.z.toFixed(1)})`);
+        // デバッグ情報更新（常時表示）
+        if (debugInfo && Math.random() < 0.02) { // 2%の確率で更新（負荷軽減）
+            const status = [
+                `Touch: ${isTouching ? '✅ YES' : '❌ NO'}`,
+                `Pos: (${camera.position.x.toFixed(1)}, ${camera.position.z.toFixed(1)})`,
+                `Camera: ${gameState.isCameraMode ? 'AR' : 'Normal'}`
+            ];
+            debugInfo.innerHTML = debugLog.concat(status).join('<br>');
         }
     }
     
