@@ -726,6 +726,9 @@ function setupEventListeners() {
     // デバイスの向き（スマホ用）
     window.addEventListener('deviceorientation', onDeviceOrientation);
     
+    // デバイスの動き（加速度センサー）
+    window.addEventListener('devicemotion', onDeviceMotion);
+    
     // タッチで前進（スマホ用）
     document.getElementById('container').addEventListener('touchstart', onTouchStart);
     document.getElementById('container').addEventListener('touchend', onTouchEnd);
@@ -736,6 +739,34 @@ function onDeviceOrientation(event) {
         deviceOrientation.alpha = event.alpha; // Z軸回転（コンパス）
         deviceOrientation.beta = event.beta;   // X軸回転（前後傾き）
         deviceOrientation.gamma = event.gamma; // Y軸回転（左右傾き）
+    }
+}
+
+function onDeviceMotion(event) {
+    if (event.acceleration && gameState.isCameraMode) {
+        const now = Date.now();
+        const deltaTime = (now - deviceMotion.lastTime) / 1000; // 秒に変換
+        deviceMotion.lastTime = now;
+        
+        // 加速度を取得（重力補正済み）
+        const ax = event.acceleration.x || 0;
+        const ay = event.acceleration.y || 0;
+        const az = event.acceleration.z || 0;
+        
+        // 加速度から速度を計算（積分）
+        deviceMotion.velocity.x += ax * deltaTime;
+        deviceMotion.velocity.y += ay * deltaTime;
+        deviceMotion.velocity.z += az * deltaTime;
+        
+        // 減衰（摩擦）
+        deviceMotion.velocity.x *= 0.9;
+        deviceMotion.velocity.y *= 0.9;
+        deviceMotion.velocity.z *= 0.9;
+        
+        // 小さい値はノイズとして無視
+        if (Math.abs(deviceMotion.velocity.x) < 0.01) deviceMotion.velocity.x = 0;
+        if (Math.abs(deviceMotion.velocity.y) < 0.01) deviceMotion.velocity.y = 0;
+        if (Math.abs(deviceMotion.velocity.z) < 0.01) deviceMotion.velocity.z = 0;
     }
 }
 
@@ -759,6 +790,11 @@ function onWindowResize() {
 
 let keys = { w: false, a: false, s: false, d: false, up: false, down: false, left: false, right: false };
 let deviceOrientation = { alpha: 0, beta: 0, gamma: 0 };
+let deviceMotion = { 
+    acceleration: { x: 0, y: 0, z: 0 },
+    velocity: { x: 0, y: 0, z: 0 },
+    lastTime: Date.now()
+};
 
 function onKeyDown(event) {
     switch (event.key.toLowerCase()) {
@@ -904,17 +940,29 @@ async function enterCameraMode() {
     showMessage("カメラモード準備中...");
     
     try {
-        // iOS 13+ではジャイロセンサーの許可が必要
+        // iOS 13+ではジャイロセンサーと加速度センサーの許可が必要
         if (typeof DeviceOrientationEvent !== 'undefined' && 
             typeof DeviceOrientationEvent.requestPermission === 'function') {
             try {
-                const permission = await DeviceOrientationEvent.requestPermission();
-                if (permission !== 'granted') {
+                const orientationPermission = await DeviceOrientationEvent.requestPermission();
+                if (orientationPermission !== 'granted') {
                     showMessage("モーションセンサーの許可が必要です");
                 }
             } catch (e) {
                 console.log('Motion permission error:', e);
-                // 許可が得られなくてもカメラモードは続行
+            }
+        }
+        
+        // 加速度センサーの許可（iOS 13+）
+        if (typeof DeviceMotionEvent !== 'undefined' && 
+            typeof DeviceMotionEvent.requestPermission === 'function') {
+            try {
+                const motionPermission = await DeviceMotionEvent.requestPermission();
+                if (motionPermission === 'granted') {
+                    showMessage("🚶 あるいて うごけます！");
+                }
+            } catch (e) {
+                console.log('Acceleration permission error:', e);
             }
         }
         
@@ -1166,7 +1214,31 @@ function updatePlayerMovement(delta) {
         camera.rotation.z = -gamma;
         camera.rotation.order = 'YXZ';
         
-        // タッチで前進
+        // 加速度センサーで移動（歩行検知）
+        const walkThreshold = 0.05; // 歩行と判定する閾値
+        const walkSpeed = 0.15; // 歩行時の移動速度
+        
+        // 前後の動き（Z軸）
+        if (Math.abs(deviceMotion.velocity.z) > walkThreshold) {
+            const direction = new THREE.Vector3(0, 0, -1);
+            direction.applyQuaternion(camera.quaternion);
+            direction.y = 0;
+            direction.normalize();
+            
+            camera.position.add(direction.multiplyScalar(deviceMotion.velocity.z * walkSpeed));
+        }
+        
+        // 左右の動き（X軸）
+        if (Math.abs(deviceMotion.velocity.x) > walkThreshold) {
+            const direction = new THREE.Vector3(1, 0, 0);
+            direction.applyQuaternion(camera.quaternion);
+            direction.y = 0;
+            direction.normalize();
+            
+            camera.position.add(direction.multiplyScalar(deviceMotion.velocity.x * walkSpeed));
+        }
+        
+        // タッチでも前進（代替操作）
         if (isTouching) {
             const direction = new THREE.Vector3(0, 0, -1);
             direction.applyQuaternion(camera.quaternion);
