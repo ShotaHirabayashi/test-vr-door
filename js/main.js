@@ -909,6 +909,12 @@ function startGame() {
     camera.position.set(0, 1.6, 8);
     controls.target.set(0, 1, 0);
     
+    // スマホの場合はOrbitControlsを無効化（タッチ操作と競合するため）
+    if ('ontouchstart' in window) {
+        controls.enabled = false;
+        updateDebug('OrbitControls disabled (touch device)');
+    }
+    
     showMessage("⭐ほしを あつめて おふろへ いこう！");
 }
 
@@ -1067,8 +1073,10 @@ function stopCameraMode() {
     cameraVideo.classList.remove('active');
     gameState.isCameraMode = false;
     
-    // OrbitControlsを再有効化
-    controls.enabled = true;
+    // OrbitControlsを再有効化（PC用）
+    if (!('ontouchstart' in window)) {
+        controls.enabled = true;
+    }
     
     // 元に戻す
     scene.background = new THREE.Color(0x1a1a2e);
@@ -1129,6 +1137,11 @@ function restartGame() {
     // 位置リセット
     camera.position.set(0, 1.6, 8);
     playerGroup.position.set(0, 0, 8);
+    
+    // スマホの場合はOrbitControlsを無効化
+    if ('ontouchstart' in window) {
+        controls.enabled = false;
+    }
     
     showMessage("もういちど がんばろう！");
 }
