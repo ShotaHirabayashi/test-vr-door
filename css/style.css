@@ -232,6 +232,10 @@ button {
     cursor: pointer;
     transition: all 0.3s ease;
     margin-bottom: 12px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 #start-button {

@@ -694,6 +694,10 @@ function setupEventListeners() {
     
     // スタートボタン
     startButton.addEventListener('click', startGame);
+    startButton.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        startGame();
+    });
     
     // VRボタン
     vrButton.addEventListener('click', enterVR);
@@ -703,9 +707,17 @@ function setupEventListeners() {
     
     // カメラモードボタン（iPhone対応）
     cameraButton.addEventListener('click', enterCameraMode);
+    cameraButton.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        enterCameraMode();
+    });
     
     // リスタートボタン
     restartButton.addEventListener('click', restartGame);
+    restartButton.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        restartGame();
+    });
     
     // キーボード（非VR用）
     window.addEventListener('keydown', onKeyDown);
