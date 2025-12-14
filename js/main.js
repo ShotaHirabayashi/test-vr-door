@@ -794,14 +794,15 @@ function onKeyUp(event) {
 // VR/AR対応確認
 // ========================================
 async function checkVRSupport() {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    
     if ('xr' in navigator) {
         // VR対応チェック
         const isVRSupported = await navigator.xr.isSessionSupported('immersive-vr');
         if (isVRSupported) {
             vrButton.disabled = false;
         } else {
-            vrButton.disabled = true;
-            vrButton.innerHTML = '<span>VR非対応</span>';
+            vrButton.style.display = 'none'; // 非対応なら非表示
         }
         
         // AR対応チェック
@@ -809,14 +810,18 @@ async function checkVRSupport() {
         if (isARSupported) {
             arButton.disabled = false;
         } else {
-            arButton.disabled = true;
-            arButton.innerHTML = '<span>AR非対応</span>';
+            arButton.style.display = 'none'; // 非対応なら非表示
         }
     } else {
-        vrButton.disabled = true;
-        vrButton.innerHTML = '<span>VR非対応</span>';
-        arButton.disabled = true;
-        arButton.innerHTML = '<span>AR非対応</span>';
+        // WebXR非対応（iPhoneなど）
+        vrButton.style.display = 'none';
+        arButton.style.display = 'none';
+    }
+    
+    // iPhoneの場合はカメラモードを強調
+    if (isIOS) {
+        cameraButton.innerHTML = '<span class="button-icon">📷</span><span>カメラARモード ✨おすすめ</span>';
+        cameraButton.style.order = '-1'; // 一番上に
     }
 }
 
