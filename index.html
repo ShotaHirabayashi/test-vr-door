@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛁 おふろクエスト - VR Adventure</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+<body>
+    <div id="loading-screen">
+        <div class="loader-content">
+            <div class="bath-icon">🛁</div>
+            <h1>おふろクエスト</h1>
+            <p class="subtitle">お風呂まで冒険しよう！</p>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+            <p class="loading-text">ロード中...</p>
+        </div>
+    </div>
+
+    <div id="start-screen" class="hidden">
+        <div class="start-content">
+            <div class="title-container">
+                <span class="star-left">⭐</span>
+                <h1>おふろクエスト</h1>
+                <span class="star-right">⭐</span>
+            </div>
+            <p class="description">
+                おもちゃのゆうわくに まけないで<br>
+                ⭐ほしを あつめながら<br>
+                おふろの とびらを めざそう！
+            </p>
+            <div class="instructions">
+                <div class="instruction-item">
+                    <span class="icon">🎮</span>
+                    <span>VRコントローラーで うごく</span>
+                </div>
+                <div class="instruction-item">
+                    <span class="icon">⭐</span>
+                    <span>ほしを 5こ あつめよう</span>
+                </div>
+                <div class="instruction-item">
+                    <span class="icon">🚫</span>
+                    <span>おもちゃに さわらないで！</span>
+                </div>
+            </div>
+            <button id="start-button">
+                <span class="button-icon">🚀</span>
+                <span>ぼうけん スタート！</span>
+            </button>
+            <button id="vr-button" class="vr-btn">
+                <span class="button-icon">🥽</span>
+                <span>VRモードで あそぶ</span>
+            </button>
+            <button id="ar-button" class="ar-btn">
+                <span class="button-icon">📱</span>
+                <span>ARモードで あそぶ</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="game-ui" class="hidden">
+        <div class="stars-counter">
+            <span class="star-icon">⭐</span>
+            <span id="stars-count">0</span>
+            <span class="star-total">/ 5</span>
+        </div>
+        <div id="message-box" class="hidden">
+            <p id="message-text"></p>
+        </div>
+    </div>
+
+    <div id="goal-screen" class="hidden">
+        <div class="goal-content">
+            <div class="confetti"></div>
+            <h1>🎉 クリア！ 🎉</h1>
+            <div class="trophy">🏆</div>
+            <p class="congrats">すごい！おふろに とうちゃく！</p>
+            <p class="stars-result">あつめた ほし: <span id="final-stars">5</span>⭐</p>
+            <button id="restart-button">
+                <span>もういちど あそぶ</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="container"></div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
+
