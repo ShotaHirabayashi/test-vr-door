@@ -775,19 +775,23 @@ function onDeviceMotion(event) {
 let isTouching = false;
 
 function onTouchStart(event) {
-    if (gameState.isPlaying && (gameState.isCameraMode || !gameState.isVR)) {
+    console.log('Touch start:', gameState.isPlaying, gameState.isCameraMode, gameState.isVR);
+    
+    if (gameState.isPlaying) {
         event.preventDefault(); // デフォルト動作を防ぐ
         isTouching = true;
+        console.log('Touch activated!');
     }
 }
 
 function onTouchEnd(event) {
     event.preventDefault(); // デフォルト動作を防ぐ
     isTouching = false;
+    console.log('Touch ended');
 }
 
 function onTouchMove(event) {
-    if (gameState.isPlaying && (gameState.isCameraMode || !gameState.isVR)) {
+    if (gameState.isPlaying) {
         event.preventDefault(); // スクロールを防ぐ
     }
 }
@@ -1276,11 +1280,21 @@ function updatePlayerMovement(delta) {
         camera.position.x = Math.max(-9, Math.min(9, camera.position.x));
         camera.position.z = Math.max(-9.5, Math.min(10, camera.position.z));
     } else {
-        // 非VRモードでの移動（PC）
+        // 非VRモードでの移動（PC・スマホ通常モード）
         if (keys.w) camera.position.z -= speed;
         if (keys.s) camera.position.z += speed;
         if (keys.a) camera.position.x -= speed;
         if (keys.d) camera.position.x += speed;
+        
+        // タッチで前進（通常モード）
+        if (isTouching && !gameState.isCameraMode) {
+            const direction = new THREE.Vector3();
+            camera.getWorldDirection(direction);
+            direction.y = 0;
+            direction.normalize();
+            
+            camera.position.add(direction.multiplyScalar(speed * 2));
+        }
         
         // 境界チェック
         camera.position.x = Math.max(-9, Math.min(9, camera.position.x));
