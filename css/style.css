@@ -24,19 +24,37 @@
     box-sizing: border-box;
 }
 
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: fixed;
+}
+
 body {
     font-family: var(--font-main);
     background: var(--color-dark);
     overflow: hidden;
     width: 100vw;
     height: 100vh;
+    position: fixed;
+    margin: 0;
+    padding: 0;
 }
 
 #container {
     width: 100%;
     height: 100%;
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
     z-index: 10;
+}
+
+#container canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
 }
 
 /* ========================================
