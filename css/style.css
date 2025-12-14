@@ -29,6 +29,10 @@ html, body {
     height: 100%;
     overflow: hidden;
     position: fixed;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 body {
@@ -49,12 +53,19 @@ body {
     top: 0;
     left: 0;
     z-index: 10;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 #container canvas {
     display: block;
     width: 100% !important;
     height: 100% !important;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 /* ========================================

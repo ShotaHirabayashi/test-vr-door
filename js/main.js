@@ -730,8 +730,10 @@ function setupEventListeners() {
     window.addEventListener('devicemotion', onDeviceMotion);
     
     // タッチで前進（スマホ用）
-    document.getElementById('container').addEventListener('touchstart', onTouchStart);
-    document.getElementById('container').addEventListener('touchend', onTouchEnd);
+    const container = document.getElementById('container');
+    container.addEventListener('touchstart', onTouchStart, { passive: false });
+    container.addEventListener('touchend', onTouchEnd, { passive: false });
+    container.addEventListener('touchmove', onTouchMove, { passive: false });
 }
 
 function onDeviceOrientation(event) {
@@ -774,12 +776,20 @@ let isTouching = false;
 
 function onTouchStart(event) {
     if (gameState.isPlaying && (gameState.isCameraMode || !gameState.isVR)) {
+        event.preventDefault(); // デフォルト動作を防ぐ
         isTouching = true;
     }
 }
 
 function onTouchEnd(event) {
+    event.preventDefault(); // デフォルト動作を防ぐ
     isTouching = false;
+}
+
+function onTouchMove(event) {
+    if (gameState.isPlaying && (gameState.isCameraMode || !gameState.isVR)) {
+        event.preventDefault(); // スクロールを防ぐ
+    }
 }
 
 function onWindowResize() {
